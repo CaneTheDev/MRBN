@@ -5,7 +5,8 @@ use futures::StreamExt;
 use libp2p::{
     gossipsub, kad, mdns, noise, yamux, ping, relay, dcutr, identify,
     swarm::{NetworkBehaviour, SwarmEvent},
-    tcp, PeerId, Swarm, SwarmBuilder,
+    tcp, dns, websocket, PeerId, Swarm, SwarmBuilder, Transport,
+    core::upgrade,
 };
 use std::time::Duration;
 use tracing::{info, warn};
@@ -103,15 +104,24 @@ impl NetworkNode {
 
         info!("📡 Subscribed to topics: transactions, blocks, committee");
 
-        // Build the swarm using the new builder API with relay transport
+        // Build custom transport with TCP, DNS, and WebSocket support
+        let tcp_transport = tcp::tokio::Transport::default();
+        let dns_transport = dns::tokio::Transport::system(tcp_transport)?;
+        let ws_transport = websocket::WsConfig::new(tcp::tokio::Transport::default());
+        let ws_dns_transport = dns::tokio::Transport::system(ws_transport)?;
+        
+        // Combine TCP+DNS and WebSocket+DNS transports
+        let transport = dns_transport
+            .or_transport(ws_dns_transport)
+            .upgrade(upgrade::Version::V1)
+            .authenticate(noise::Config::new(&local_key)?)
+            .multiplex(yamux::Config::default())
+            .boxed();
+
+        // Build the swarm with custom transport
         let mut swarm = SwarmBuilder::with_existing_identity(local_key)
             .with_tokio()
-            .with_tcp(
-                tcp::Config::default(),
-                noise::Config::new,
-                yamux::Config::default,
-            )?
-            .with_dns()?
+            .with_other_transport(|_| Ok(transport))?
             .with_relay_client(noise::Config::new, yamux::Config::default)?
             .with_behaviour(|_, relay_client| {
                 // Create behaviour with relay client from builder

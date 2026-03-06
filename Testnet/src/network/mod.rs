@@ -111,6 +111,7 @@ impl NetworkNode {
                 noise::Config::new,
                 yamux::Config::default,
             )?
+            .with_dns()?
             .with_relay_client(noise::Config::new, yamux::Config::default)?
             .with_behaviour(|_, relay_client| {
                 // Create behaviour with relay client from builder
@@ -162,9 +163,9 @@ impl NetworkNode {
         
         // List of public libp2p relay servers
         let relays = vec![
-            // IPFS public relays
-            "/dnsaddr/relay.libp2p.io/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN",
-            "/dnsaddr/relay.libp2p.io/p2p/12D3KooWPjceQrSwdWXPyLLeABRXmuqt69Rg3sBYbU1Nft9HyQ6X",
+            // Use IP addresses instead of dnsaddr (more reliable)
+            "/ip4/147.75.83.83/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN",
+            "/ip4/147.75.77.187/tcp/4001/p2p/12D3KooWPjceQrSwdWXPyLLeABRXmuqt69Rg3sBYbU1Nft9HyQ6X",
         ];
 
         for relay_addr in relays {
@@ -311,6 +312,12 @@ impl NetworkNode {
                 }
                 SwarmEvent::ConnectionClosed { peer_id, cause, .. } => {
                     warn!("❌ Connection closed with {}: {:?}", peer_id, cause);
+                }
+                SwarmEvent::OutgoingConnectionError { peer_id, error, .. } => {
+                    warn!("❌ Outgoing connection error to {:?}: {:?}", peer_id, error);
+                }
+                SwarmEvent::IncomingConnectionError { error, .. } => {
+                    warn!("❌ Incoming connection error: {:?}", error);
                 }
                 SwarmEvent::Behaviour(MrbnBehaviourEvent::Identify(identify::Event::Received { peer_id, info })) => {
                     info!("🆔 Identified peer {}: Agent={}, Protocols={}", 

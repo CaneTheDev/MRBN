@@ -254,6 +254,14 @@ impl NetworkNode {
                 })) => {
                     if is_new_peer {
                         info!("🌍 Kademlia discovered new peer: {} with {} addresses", peer, addresses.len());
+                        
+                        // Actively dial the discovered peer
+                        for addr in addresses.iter() {
+                            info!("📞 Dialing discovered peer {} at {}", peer, addr);
+                            if let Err(e) = self.swarm.dial(addr.clone()) {
+                                warn!("❌ Failed to dial {}: {:?}", peer, e);
+                            }
+                        }
                     }
                 }
                 SwarmEvent::Behaviour(MrbnBehaviourEvent::Kademlia(kad::Event::InboundRequest { .. })) => {

@@ -3,6 +3,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "chmod +x start_with_bridge.sh && ./start_with_bridge.sh"
+startCommand = "/home/mrbn/start_with_bridge.sh"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10

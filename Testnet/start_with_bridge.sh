@@ -8,11 +8,16 @@ echo "Relay is ONLY for initial bootstrap - all other connections are direct P2P
 /usr/local/bin/mrbn-node --data-dir /home/mrbn/data &
 NODE_PID=$!
 
+echo "Node started with PID: $NODE_PID"
+
 # Wait for node to start
 sleep 3
 
-# Start relay bridge (foreground)
+echo "Starting relay bridge..."
+
+# Start relay bridge (foreground - keeps container running)
 /usr/local/bin/relay-bridge
 
-# Cleanup on exit
-kill $NODE_PID
+# If relay bridge exits, cleanup
+echo "Relay bridge stopped, cleaning up..."
+kill $NODE_PID 2>/dev/null

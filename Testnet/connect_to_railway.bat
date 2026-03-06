@@ -5,7 +5,7 @@ echo ========================================
 echo.
 
 REM Railway's peer ID from logs
-set RAILWAY_PEER=12D3KooWE9KDFDTmAs8UFpqaQtNLx2B7Kzk2173gotgxATtsWWXF
+set RAILWAY_PEER=12D3KooWS8M9DGzKbYoty84gc57cdB1D1X6Ujzve496ZfS4oU78a
 
 REM Connect via WebSocket (Railway's HTTP proxy supports this)
 set RAILWAY_ADDR=/dns4/mrbn-production.up.railway.app/tcp/8334/ws/p2p/%RAILWAY_PEER%

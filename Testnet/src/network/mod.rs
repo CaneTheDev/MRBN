@@ -105,14 +105,11 @@ impl NetworkNode {
         info!("📡 Subscribed to topics: transactions, blocks, committee");
 
         // Build custom transport with TCP, DNS, and WebSocket support
+        // WebSocket wraps TCP, then DNS wraps both
         let tcp_transport = tcp::tokio::Transport::default();
-        let dns_transport = dns::tokio::Transport::system(tcp_transport)?;
-        let ws_transport = websocket::WsConfig::new(tcp::tokio::Transport::default());
-        let ws_dns_transport = dns::tokio::Transport::system(ws_transport)?;
-        
-        // Combine TCP+DNS and WebSocket+DNS transports
-        let transport = dns_transport
-            .or_transport(ws_dns_transport)
+        let ws_tcp_transport = websocket::WsConfig::new(tcp_transport.clone())
+            .or_transport(tcp_transport);
+        let transport = dns::tokio::Transport::system(ws_tcp_transport)?
             .upgrade(upgrade::Version::V1)
             .authenticate(noise::Config::new(&local_key)?)
             .multiplex(yamux::Config::default())

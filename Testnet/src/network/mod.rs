@@ -129,10 +129,10 @@ impl NetworkNode {
             })
             .build();
 
-        // Listen on all interfaces, port 8333 (MRBN default port)
+        // Listen on TCP
         swarm.listen_on("/ip4/0.0.0.0/tcp/8333".parse()?)?;
-
-        info!("🎧 Listening on port 8333...");
+        
+        info!("🎧 Listening on TCP port 8333...");
 
         // Create the node
         let mut node = NetworkNode {

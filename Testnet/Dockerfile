@@ -41,8 +41,9 @@ RUN mkdir -p /home/mrbn/data && chown -R mrbn:mrbn /home/mrbn
 
 USER mrbn
 
-# Expose port
+# Expose ports
 EXPOSE 8333
+EXPOSE 8334
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

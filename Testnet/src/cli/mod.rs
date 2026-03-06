@@ -117,7 +117,12 @@ impl From<Cli> for CliConfig {
             validator: cli.validator,
             wallet_dir: cli.wallet_dir,
             bootstrap: cli.bootstrap,
-            external_address: cli.external_address,
+            external_address: cli.external_address.or_else(|| {
+                // Auto-detect Railway and use proxy address
+                std::env::var("RAILWAY_PUBLIC_DOMAIN").ok().map(|_| {
+                    "/dns4/switchback.proxy.rlwy.net/tcp/35284/wss".to_string()
+                })
+            }),
         }
     }
 }

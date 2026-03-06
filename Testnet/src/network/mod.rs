@@ -130,10 +130,20 @@ impl NetworkNode {
             })
             .build();
 
-        // Listen on TCP
+        // Listen on TCP (for local P2P and direct connections)
         swarm.listen_on("/ip4/0.0.0.0/tcp/8333".parse()?)?;
         
-        info!("🎧 Listening on TCP port 8333...");
+        // Listen on WebSocket (for Railway/cloud connections through HTTP proxy)
+        // Railway will route HTTP traffic on port 8334 to this WebSocket listener
+        if let Ok(ws_addr) = "/ip4/0.0.0.0/tcp/8334/ws".parse() {
+            if let Err(e) = swarm.listen_on(ws_addr) {
+                warn!("⚠️ Could not listen on WebSocket (this is OK if not needed): {}", e);
+            } else {
+                info!("🌐 WebSocket enabled on port 8334 for cloud connectivity");
+            }
+        }
+        
+        info!("🎧 Listening on TCP port 8333 (P2P) and WebSocket port 8334 (cloud)...");
 
         // Create the node
         let mut node = NetworkNode {

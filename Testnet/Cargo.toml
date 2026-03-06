@@ -22,8 +22,7 @@ path = "src/bin/network_test.rs"
 # libp2p for P2P networking (pure Rust, no OpenSSL)
 libp2p = { version = "0.53", features = [
     "tcp",           # TCP transport
-    "dns",           # DNS resolution (required for websocket)
-    "websocket",     # WebSocket transport (works through HTTP proxies)
+    "dns",           # DNS resolution
     "noise",         # Encryption
     "yamux",         # Multiplexing
     "gossipsub",     # Message broadcasting

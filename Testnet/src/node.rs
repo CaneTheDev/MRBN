@@ -39,11 +39,11 @@ impl MrbnNode {
         info!("✅ Storage initialized at {:?}", config.data_dir);
 
         // Initialize network
-        let mut network = NetworkNode::new(config.external_address.clone())?;
+        let mut network = NetworkNode::new()?;
         info!("✅ Network initialized (Peer ID: {})", network.peer_id());
         
-        // Add bootstrap peer if provided
-        if let Some(ref bootstrap_addr) = config.bootstrap {
+        // Add bootstrap peers if provided
+        for bootstrap_addr in &config.bootstrap {
             info!("🔗 Connecting to bootstrap node: {}", bootstrap_addr);
             if let Err(e) = network.add_peer_from_multiaddr(bootstrap_addr) {
                 warn!("Failed to add bootstrap peer: {}", e);

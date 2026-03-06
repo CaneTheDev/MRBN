@@ -33,7 +33,7 @@ async fn main() -> Result<()> {
     let config = cli::CliConfig {
         data_dir: std::path::PathBuf::from("./test_network_data"),
         port: 8334,
-        bootstrap: Some(bootstrap_addr.clone()),
+        bootstrap: vec![bootstrap_addr.clone()],
         ..Default::default()
     };
 

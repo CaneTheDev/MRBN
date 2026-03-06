@@ -5,7 +5,7 @@ use futures::StreamExt;
 use libp2p::{
     gossipsub, kad, mdns, noise, yamux, ping, relay, dcutr, identify,
     swarm::{NetworkBehaviour, SwarmEvent},
-    tcp, dns, websocket, PeerId, Swarm, SwarmBuilder, Transport,
+    tcp, dns, PeerId, Swarm, SwarmBuilder, Transport,
     core::upgrade,
 };
 use std::time::Duration;
@@ -33,7 +33,7 @@ pub struct NetworkNode {
 
 impl NetworkNode {
     /// Create a new MRBN network node
-    pub fn new(external_address: Option<String>) -> Result<Self> {
+    pub fn new() -> Result<Self> {
         info!("🚀 Initializing MRBN Network Node...");
 
         // Generate node identity
@@ -104,12 +104,8 @@ impl NetworkNode {
 
         info!("📡 Subscribed to topics: transactions, blocks, committee");
 
-        // Build custom transport with TCP, DNS, and WebSocket support
-        // WebSocket wraps TCP, then DNS wraps both
-        let tcp_transport = tcp::tokio::Transport::default();
-        let ws_transport = websocket::WsConfig::new(tcp::tokio::Transport::default());
-        let combined_transport = tcp_transport.or_transport(ws_transport);
-        let transport = dns::tokio::Transport::system(combined_transport)?
+        // Build simple TCP transport with DNS
+        let transport = dns::tokio::Transport::system(tcp::tokio::Transport::default())?
             .upgrade(upgrade::Version::V1)
             .authenticate(noise::Config::new(&local_key)?)
             .multiplex(yamux::Config::default())
@@ -137,64 +133,18 @@ impl NetworkNode {
             })
             .build();
 
-        // Listen on TCP (for local P2P and direct connections)
+        // Listen on TCP for P2P connections
         swarm.listen_on("/ip4/0.0.0.0/tcp/8333".parse()?)?;
         
-        // Listen on WebSocket (for Railway/cloud connections through HTTP proxy)
-        // Railway will route HTTP traffic on port 8334 to this WebSocket listener
-        if let Ok(ws_addr) = "/ip4/0.0.0.0/tcp/8334/ws".parse() {
-            if let Err(e) = swarm.listen_on(ws_addr) {
-                warn!("⚠️ Could not listen on WebSocket (this is OK if not needed): {}", e);
-            } else {
-                info!("🌐 WebSocket enabled on port 8334 for cloud connectivity");
-            }
-        }
-        
-        info!("🎧 Listening on TCP port 8333 (P2P) and WebSocket port 8334 (cloud)...");
+        info!("🎧 Listening on TCP port 8333 for P2P connections...");
 
         // Create the node
-        let mut node = NetworkNode {
+        let node = NetworkNode {
             swarm,
             local_peer_id,
         };
 
-        // Add external address if provided (for Railway, Render, etc.)
-        if let Some(ext_addr) = external_address {
-            info!("🌍 Adding external address: {}", ext_addr);
-            if let Ok(addr) = ext_addr.parse() {
-                node.swarm.add_external_address(addr);
-            } else {
-                warn!("Failed to parse external address: {}", ext_addr);
-            }
-        }
-
-        // Connect to public relay servers for NAT traversal
-        node.connect_to_public_relays()?;
-
         Ok(node)
-    }
-
-    /// Connect to public libp2p relay servers for NAT traversal
-    fn connect_to_public_relays(&mut self) -> Result<()> {
-        info!("🔄 Connecting to public relay servers for NAT traversal...");
-        
-        // List of public libp2p relay servers
-        let relays = vec![
-            // Use IP addresses instead of dnsaddr (more reliable)
-            "/ip4/147.75.83.83/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN",
-            "/ip4/147.75.77.187/tcp/4001/p2p/12D3KooWPjceQrSwdWXPyLLeABRXmuqt69Rg3sBYbU1Nft9HyQ6X",
-        ];
-
-        for relay_addr in relays {
-            if let Ok(addr) = relay_addr.parse::<libp2p::Multiaddr>() {
-                info!("🔗 Connecting to relay: {}", relay_addr);
-                if let Err(e) = self.swarm.dial(addr) {
-                    warn!("Failed to connect to relay {}: {}", relay_addr, e);
-                }
-            }
-        }
-
-        Ok(())
     }
 
     /// Get the local peer ID
@@ -205,6 +155,7 @@ impl NetworkNode {
     /// Bootstrap the Kademlia DHT to start discovering peers
     pub fn bootstrap(&mut self) -> Result<()> {
         info!("🔄 Bootstrapping Kademlia DHT...");
+        
         match self.swarm.behaviour_mut().kademlia.bootstrap() {
             Ok(_) => {
                 info!("✅ DHT bootstrap initiated successfully");

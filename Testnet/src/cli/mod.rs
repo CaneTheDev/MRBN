@@ -33,14 +33,10 @@ pub struct Cli {
     #[arg(long, default_value = "./wallet")]
     pub wallet_dir: PathBuf,
     
-    /// Bootstrap node address (format: /ip4/1.2.3.4/tcp/8333/p2p/12D3Koo...)
+    /// Bootstrap node addresses (format: /ip4/1.2.3.4/tcp/8333/p2p/12D3Koo...)
+    /// Can specify multiple times for multiple bootstrap nodes
     #[arg(long)]
-    pub bootstrap: Option<String>,
-    
-    /// External address to advertise (for nodes behind proxies/load balancers)
-    /// Format: /dns4/your-domain.com/tcp/port or /ip4/1.2.3.4/tcp/port
-    #[arg(long)]
-    pub external_address: Option<String>,
+    pub bootstrap: Vec<String>,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -103,10 +99,8 @@ pub struct CliConfig {
     pub validator: bool,
     /// Wallet directory
     pub wallet_dir: PathBuf,
-    /// Bootstrap node multiaddr
-    pub bootstrap: Option<String>,
-    /// External address to advertise
-    pub external_address: Option<String>,
+    /// Bootstrap node multiaddrs
+    pub bootstrap: Vec<String>,
 }
 
 impl From<Cli> for CliConfig {
@@ -117,12 +111,6 @@ impl From<Cli> for CliConfig {
             validator: cli.validator,
             wallet_dir: cli.wallet_dir,
             bootstrap: cli.bootstrap,
-            external_address: cli.external_address.or_else(|| {
-                // Auto-detect Railway and use proxy address
-                std::env::var("RAILWAY_PUBLIC_DOMAIN").ok().map(|_| {
-                    "/dns4/switchback.proxy.rlwy.net/tcp/35284/wss".to_string()
-                })
-            }),
         }
     }
 }
@@ -134,8 +122,7 @@ impl Default for CliConfig {
             port: 8333,
             validator: true,
             wallet_dir: PathBuf::from("./wallet"),
-            bootstrap: None,
-            external_address: None,
+            bootstrap: Vec::new(),
         }
     }
 }

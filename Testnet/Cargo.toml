@@ -29,6 +29,8 @@ libp2p = { version = "0.53", features = [
     "kad",           # Kademlia DHT for global discovery
     "identify",      # Peer identification
     "ping",          # Keep-alive
+    "relay",         # Circuit relay for NAT traversal
+    "dcutr",         # Direct connection upgrade through relay
     "tokio",         # Tokio runtime support
     "macros",        # Derive macros for NetworkBehaviour
 ] }

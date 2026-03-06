@@ -4,7 +4,7 @@
 use mrbn_node::*;
 use anyhow::Result;
 use std::time::Duration;
-use tokio::time::{sleep, timeout};
+use tokio::time::sleep;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -30,10 +30,12 @@ async fn main() -> Result<()> {
     println!("🔗 Bootstrap node: {}\n", bootstrap_addr);
 
     // Create test configuration
-    let mut config = cli::CliConfig::default();
-    config.data_dir = std::path::PathBuf::from("./test_network_data");
-    config.port = 8334;
-    config.bootstrap = Some(bootstrap_addr.clone());
+    let config = cli::CliConfig {
+        data_dir: std::path::PathBuf::from("./test_network_data"),
+        port: 8334,
+        bootstrap: Some(bootstrap_addr.clone()),
+        ..Default::default()
+    };
 
     // Clean old test data
     if config.data_dir.exists() {

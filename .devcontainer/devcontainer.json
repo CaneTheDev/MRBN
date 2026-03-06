@@ -1,23 +1,5 @@
 {
-  "name": "MRBN Testnet Development",
+  "name": "MRBN Testnet",
   "image": "mcr.microsoft.com/devcontainers/rust:latest",
-  "features": {
-    "ghcr.io/devcontainers/features/rust:1": {
-      "version": "latest",
-      "profile": "default"
-    }
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "rust-lang.rust-analyzer",
-        "vadimcn.vscode-lldb"
-      ],
-      "settings": {
-        "rust-analyzer.checkOnSave.command": "clippy"
-      }
-    }
-  },
-  "postCreateCommand": "rustc --version && cargo --version",
-  "remoteUser": "vscode"
+  "postCreateCommand": "rustc --version && cargo --version"
 }

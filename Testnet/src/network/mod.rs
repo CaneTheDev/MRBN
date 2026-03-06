@@ -3,7 +3,7 @@
 use anyhow::Result;
 use futures::StreamExt;
 use libp2p::{
-    gossipsub, kad, mdns, noise, yamux, ping,
+    gossipsub, kad, mdns, noise, yamux, ping, relay, dcutr, identify,
     swarm::{NetworkBehaviour, SwarmEvent},
     tcp, PeerId, Swarm, SwarmBuilder,
 };
@@ -20,6 +20,9 @@ pub struct MrbnBehaviour {
     pub mdns: mdns::tokio::Behaviour,
     pub kademlia: kad::Behaviour<kad::store::MemoryStore>,
     pub ping: ping::Behaviour,
+    pub relay_client: relay::client::Behaviour,
+    pub dcutr: dcutr::Behaviour,
+    pub identify: identify::Behaviour,
 }
 
 pub struct NetworkNode {
@@ -76,22 +79,31 @@ impl NetworkNode {
             .with_interval(std::time::Duration::from_secs(15)); // Ping every 15 seconds
         let ping = ping::Behaviour::new(ping_config);
         
-        // Create the behaviour first
-        let mut behaviour = MrbnBehaviour { 
-            gossipsub, 
-            mdns,
-            kademlia,
-            ping,
-        };
+        // Create DCUtR for direct connection upgrade through relay
+        let dcutr = dcutr::Behaviour::new(local_peer_id);
+        
+        // Create identify for peer information exchange (required for relay)
+        let identify = identify::Behaviour::new(identify::Config::new(
+            "/mrbn/1.0.0".to_string(),
+            local_key.public(),
+        ));
+        
+        info!("🔄 NAT traversal protocols initialized (DCUtR + Identify)");
+        
+        // Create the behaviour first (relay_client will be added by SwarmBuilder)
+        let behaviour_components = (gossipsub, mdns, kademlia, ping, dcutr, identify);
 
-        // Subscribe after creating behaviour
-        behaviour.gossipsub.subscribe(&tx_topic)?;
-        behaviour.gossipsub.subscribe(&block_topic)?;
-        behaviour.gossipsub.subscribe(&committee_topic)?;
+        let (gossipsub, mdns, kademlia, ping, dcutr, identify) = behaviour_components;
+        
+        // Subscribe to topics
+        let mut gossipsub_mut = gossipsub;
+        gossipsub_mut.subscribe(&tx_topic)?;
+        gossipsub_mut.subscribe(&block_topic)?;
+        gossipsub_mut.subscribe(&committee_topic)?;
 
         info!("📡 Subscribed to topics: transactions, blocks, committee");
 
-        // Build the swarm using the new builder API with idle connection timeout
+        // Build the swarm using the new builder API with relay transport
         let mut swarm = SwarmBuilder::with_existing_identity(local_key)
             .with_tokio()
             .with_tcp(
@@ -99,9 +111,21 @@ impl NetworkNode {
                 noise::Config::new,
                 yamux::Config::default,
             )?
-            .with_behaviour(|_| behaviour)?
+            .with_relay_client(noise::Config::new, yamux::Config::default)?
+            .with_behaviour(|_, relay_client| {
+                // Create behaviour with relay client from builder
+                Ok(MrbnBehaviour {
+                    gossipsub: gossipsub_mut,
+                    mdns,
+                    kademlia,
+                    ping,
+                    relay_client,
+                    dcutr,
+                    identify,
+                })
+            })?
             .with_swarm_config(|cfg| {
-                cfg.with_idle_connection_timeout(std::time::Duration::from_secs(60)) // Keep connections alive for 60 seconds
+                cfg.with_idle_connection_timeout(std::time::Duration::from_secs(60))
             })
             .build();
 
@@ -240,6 +264,30 @@ impl NetworkNode {
                 }
                 SwarmEvent::ConnectionClosed { peer_id, cause, .. } => {
                     warn!("❌ Connection closed with {}: {:?}", peer_id, cause);
+                }
+                SwarmEvent::Behaviour(MrbnBehaviourEvent::Identify(identify::Event::Received { peer_id, info })) => {
+                    info!("🆔 Identified peer {}: Agent={}, Protocols={}", 
+                        peer_id, info.agent_version, info.protocols.len());
+                    
+                    // Add all listen addresses to Kademlia
+                    for addr in info.listen_addrs {
+                        self.swarm.behaviour_mut().kademlia.add_address(&peer_id, addr);
+                    }
+                }
+                SwarmEvent::Behaviour(MrbnBehaviourEvent::Identify(identify::Event::Sent { .. })) => {
+                    // Identify info sent to peer (normal operation)
+                }
+                SwarmEvent::Behaviour(MrbnBehaviourEvent::Identify(identify::Event::Pushed { .. })) => {
+                    // Identify info pushed to peer (normal operation)
+                }
+                SwarmEvent::Behaviour(MrbnBehaviourEvent::Identify(identify::Event::Error { peer_id, error })) => {
+                    warn!("❌ Identify error with {}: {:?}", peer_id, error);
+                }
+                SwarmEvent::Behaviour(MrbnBehaviourEvent::RelayClient(relay::client::Event::ReservationReqAccepted { relay_peer_id, .. })) => {
+                    info!("🔄 Relay reservation accepted by {}", relay_peer_id);
+                }
+                SwarmEvent::Behaviour(MrbnBehaviourEvent::Dcutr(event)) => {
+                    info!("⚡ DCUtR event: {:?}", event);
                 }
                 _ => {}
             }

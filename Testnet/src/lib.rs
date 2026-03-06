@@ -9,3 +9,4 @@ pub mod storage;
 pub mod transaction;
 pub mod validator;
 pub mod wallet;
+pub mod relay_bridge;

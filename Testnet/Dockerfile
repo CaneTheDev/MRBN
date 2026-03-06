@@ -1,4 +1,4 @@
-# Multi-stage build for MRBN Node
+# Multi-stage build for MRBN Node with Relay Bridge
 # Stage 1: Build
 FROM rustlang/rust:nightly-slim as builder
 
@@ -17,8 +17,9 @@ COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY tests ./tests
 
-# Build release binary
+# Build both binaries
 RUN cargo build --release --bin mrbn-node
+RUN cargo build --release --bin relay-bridge
 
 # Stage 2: Runtime
 FROM debian:bookworm-slim
@@ -33,8 +34,13 @@ RUN useradd -m -u 1000 mrbn
 
 WORKDIR /home/mrbn
 
-# Copy binary from builder
+# Copy binaries from builder
 COPY --from=builder /app/target/release/mrbn-node /usr/local/bin/
+COPY --from=builder /app/target/release/relay-bridge /usr/local/bin/
+
+# Copy startup script
+COPY start_with_bridge.sh /home/mrbn/
+RUN chmod +x /home/mrbn/start_with_bridge.sh
 
 # Create data directory
 RUN mkdir -p /home/mrbn/data && chown -R mrbn:mrbn /home/mrbn
@@ -49,5 +55,5 @@ EXPOSE 8334
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD pgrep mrbn-node || exit 1
 
-# Run the node
-CMD ["mrbn-node", "--data-dir", "/home/mrbn/data", "--port", "8333"]
+# Run with relay bridge
+CMD ["/home/mrbn/start_with_bridge.sh"]

@@ -11,6 +11,10 @@ name = "mrbn-node"
 path = "src/main.rs"
 
 [[bin]]
+name = "relay-bridge"
+path = "src/bin/relay_bridge.rs"
+
+[[bin]]
 name = "test-consensus"
 path = "src/bin/test_consensus.rs"
 

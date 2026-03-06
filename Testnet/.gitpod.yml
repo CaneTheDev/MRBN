@@ -1,0 +1,30 @@
+# Gitpod configuration for MRBN testing
+
+tasks:
+  - name: MRBN Node
+    init: |
+      cd Testnet
+      cargo build --release
+    command: |
+      cd Testnet
+      echo "╔════════════════════════════════════════╗"
+      echo "║   MRBN Gitpod Test Node                ║"
+      echo "╚════════════════════════════════════════╝"
+      echo ""
+      echo "📋 Instructions:"
+      echo "   1. Get bootstrap address from your laptop"
+      echo "   2. Run: cargo run -- --bootstrap \"/ip4/YOUR_IP/tcp/8333/p2p/PEER_ID\""
+      echo ""
+      echo "Example:"
+      echo "   cargo run -- --data-dir ./data_gitpod --port 8334 --bootstrap \"/ip4/1.2.3.4/tcp/8333/p2p/12D3KooW...\""
+      echo ""
+
+ports:
+  - port: 8333
+    onOpen: ignore
+  - port: 8334
+    onOpen: ignore
+
+vscode:
+  extensions:
+    - rust-lang.rust-analyzer

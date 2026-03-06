@@ -163,7 +163,16 @@ Nodes with higher availability have increased probability of selection, but neve
 
 ### 7.1 Gas Fee Allocation
 
-Each transaction carries a gas fee split among validating nodes by:
+Each transaction must pay gas fees in Kain, the network's exclusive gas currency. This requirement applies to all transactions, including transfers of other tokens deployed on MRBN.
+
+**Gas Payment Model**:
+- Gas fees are paid separately by the sender, in addition to the transfer amount
+- Example: To send 1000 Kain, the sender pays 1000 (transfer) + gas fee
+- The recipient receives exactly 1000 Kain
+- The sender's balance is deducted by 1000 + gas fee
+- Gas is never deducted from the amount being sent
+
+Gas fees are split among validating nodes by:
 - Correctness of validation
 - Latency
 - Historical reliability
@@ -180,16 +189,21 @@ Each transaction carries a gas fee split among validating nodes by:
 
 ### 8.1 Kain Cryptocurrency
 
+Kain is the native and exclusive gas fee currency of the MRBN network. All transactions, regardless of which token is being transferred, must pay gas fees in Kain.
+
 - **Initial supply**: finite (e.g., 10,000,000 Kain)
 - **Distribution model**:
   - Claim campaign for first 10% — difficult to ensure fairness
   - Ongoing micro-node earnings — proportional to validation contribution
-- Kain value tied to network usage → more transactions = higher demand
+- **Exclusive gas utility**: Only Kain can be used to pay transaction fees
+- Kain value tied to network usage → more transactions = higher demand for Kain
 
 ### 8.2 Long-Term Sustainability
 
 - Additional tokens can be deployed by developers → increased transaction volume
+- All token transactions require Kain for gas fees → creates constant demand
 - MRBN scales naturally with adoption → gas income grows without central control
+- Multi-token ecosystem drives Kain utility and validator rewards
 
 ---
 

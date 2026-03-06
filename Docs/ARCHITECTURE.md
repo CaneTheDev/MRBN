@@ -190,6 +190,17 @@ MRBN consists of five primary layers:
 
 ### Gas Mechanism
 
+**Kain as Exclusive Gas Currency**:
+All transactions on MRBN must pay gas fees in Kain, regardless of which token is being transferred. This creates fundamental demand for Kain and ensures validators are rewarded in the network's native currency.
+
+**Gas Payment Model**:
+Gas fees are paid separately by the sender, in addition to the transfer amount:
+- Sender wants to transfer 1000 tokens
+- Gas fee calculated as 10 Kain (example)
+- Sender is deducted: 1000 tokens + 10 Kain
+- Recipient receives: exactly 1000 tokens
+- Gas is never subtracted from the amount being sent
+
 **Gas Calculation**:
 ```
 gas_cost = base_fee + (computational_complexity * cpu_factor)
@@ -197,7 +208,7 @@ gas_cost = base_fee + (computational_complexity * cpu_factor)
                     + (network_bytes * network_factor)
 ```
 
-**Fee Distribution**:
+**Fee Distribution** (paid in Kain):
 - 80% to validators (split by contribution)
 - 10% to block proposer
 - 10% burned (deflationary mechanism)
@@ -276,6 +287,13 @@ validator_reward = (gas_fees * validator_share)
 }
 ```
 
+**Transaction Execution**:
+- `value`: Amount sent to recipient (1000 in example)
+- `gas_limit * gas_price`: Maximum gas fee (210000 in example)
+- Total deducted from sender: 1000 + actual_gas_used
+- Recipient receives: exactly 1000
+- Gas is paid separately and never deducted from the transfer amount
+
 ### Block Format
 
 ```json
@@ -332,7 +350,7 @@ validator_reward = (gas_fees * validator_share)
 
 ### Cross-Chain Bridges (Stage 4+)
 - Atomic swaps with other chains
-- Wrapped token support
+- Wrapped token support (all transactions still require Kain for gas)
 - Interoperability protocols
 
 ### Privacy Features (Research)

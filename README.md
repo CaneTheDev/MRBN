@@ -18,6 +18,7 @@ Unlike Proof-of-Work (favoring industrial mining) or Proof-of-Stake (favoring ca
 - **Sybil Resistance**: Without requiring stake or capital
 - **Micro-Task Parallelism**: Transaction validation split among small committees
 - **Economic Inclusivity**: Meaningful rewards for small contributors
+- **Kain Native Currency**: Exclusive gas fee currency ensuring fundamental utility and value
 
 ## Node Requirements
 

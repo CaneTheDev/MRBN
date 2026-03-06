@@ -48,6 +48,15 @@ VRF (Verifiable Random Function) is a cryptographic method that produces random,
 - **Finality**: 1-5 minutes (probabilistic)
 - **Throughput**: 1,000-10,000 transactions per second (target)
 
+### How do gas fees work?
+
+Gas fees are paid separately by the sender in Kain, in addition to the transfer amount:
+- You want to send 1000 tokens to someone
+- The gas fee is calculated (e.g., 1 Kain)
+- Your account is deducted: 1000 tokens + 1 Kain gas
+- The recipient receives: exactly 1000 tokens
+- Gas is never subtracted from the amount being sent
+
 ### Is MRBN secure?
 
 MRBN's security comes from having many distributed validators. An attacker would need to control >66% of all nodes globally, which becomes economically irrational due to resource caps and probabilistic committee selection.
@@ -71,7 +80,9 @@ Early estimates suggest micro-income potential (similar to passive income), grow
 
 ### What is Kain?
 
-Kain is the native cryptocurrency of MRBN. It's used to pay gas fees and reward validators.
+Kain is the native cryptocurrency of MRBN and the exclusive currency for paying gas fees. All transactions on the MRBN network, regardless of which token is being transferred, must pay gas fees in Kain. Validators earn Kain as rewards for their validation work.
+
+**Important**: Gas fees are paid separately by the sender in addition to the transfer amount. For example, if you send 1000 Kain with a 1 Kain gas fee, you are deducted 1001 Kain total, and the recipient receives exactly 1000 Kain.
 
 ### How is Kain distributed?
 
@@ -81,7 +92,7 @@ Kain is the native cryptocurrency of MRBN. It's used to pay gas fees and reward 
 
 ### Can I create my own token on MRBN?
 
-Yes! MRBN is designed to support multiple tokens and applications, similar to Ethereum's ERC-20 tokens.
+Yes! MRBN is designed to support multiple tokens and applications, similar to Ethereum's ERC-20 tokens. However, all transactions involving any token must pay gas fees in Kain, the network's native currency. This ensures Kain maintains fundamental utility and demand as the network grows.
 
 ---
 

@@ -1,0 +1,74 @@
+[package]
+name = "mrbn-node"
+version = "0.1.0"
+edition = "2021"
+authors = ["MRBN Contributors"]
+description = "MRBN Testnet Node - Micro Resource Based Network"
+license = "MIT"
+
+[[bin]]
+name = "mrbn-node"
+path = "src/main.rs"
+
+[[bin]]
+name = "test-consensus"
+path = "src/bin/test_consensus.rs"
+
+[[bin]]
+name = "network-test"
+path = "src/bin/network_test.rs"
+
+[dependencies]
+# libp2p for P2P networking (pure Rust, no OpenSSL)
+libp2p = { version = "0.53", features = [
+    "tcp",           # TCP transport
+    "noise",         # Encryption
+    "yamux",         # Multiplexing
+    "gossipsub",     # Message broadcasting
+    "mdns",          # Local discovery
+    "kad",           # Kademlia DHT for global discovery
+    "identify",      # Peer identification
+    "ping",          # Keep-alive
+    "tokio",         # Tokio runtime support
+    "macros",        # Derive macros for NetworkBehaviour
+] }
+
+# Async runtime (only what we need)
+tokio = { version = "1", features = ["rt-multi-thread", "net", "time", "macros", "sync", "io-std"] }
+futures = "0.3"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+bincode = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error handling
+anyhow = "1"
+thiserror = "1"
+
+# Cryptography
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+sha2 = "0.10"
+rand = "0.8"
+hex = "0.4"
+
+# VRF (Verifiable Random Function) - using schnorrkel which is pure Rust
+schnorrkel = "0.11"
+
+# Storage - ParityDB (pure Rust, optimized for blockchain)
+parity-db = "0.5"
+
+# JSON serialization for keystore
+serde_json = "1"
+
+# System information for resource monitoring
+sysinfo = "0.38"
+
+# CLI argument parsing
+clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"

@@ -3,6 +3,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "mrbn-node --data-dir /home/mrbn/data --port 8333"
+startCommand = "mrbn-node --data-dir /home/mrbn/data --port 8333 --external-address /dns4/switchback.proxy.rlwy.net/tcp/35284"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10

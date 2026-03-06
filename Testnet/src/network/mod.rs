@@ -32,7 +32,7 @@ pub struct NetworkNode {
 
 impl NetworkNode {
     /// Create a new MRBN network node
-    pub fn new() -> Result<Self> {
+    pub fn new(external_address: Option<String>) -> Result<Self> {
         info!("🚀 Initializing MRBN Network Node...");
 
         // Generate node identity
@@ -134,10 +134,49 @@ impl NetworkNode {
 
         info!("🎧 Listening on port 8333...");
 
-        Ok(NetworkNode {
+        // Create the node
+        let mut node = NetworkNode {
             swarm,
             local_peer_id,
-        })
+        };
+
+        // Add external address if provided (for Railway, Render, etc.)
+        if let Some(ext_addr) = external_address {
+            info!("🌍 Adding external address: {}", ext_addr);
+            if let Ok(addr) = ext_addr.parse() {
+                node.swarm.add_external_address(addr);
+            } else {
+                warn!("Failed to parse external address: {}", ext_addr);
+            }
+        }
+
+        // Connect to public relay servers for NAT traversal
+        node.connect_to_public_relays()?;
+
+        Ok(node)
+    }
+
+    /// Connect to public libp2p relay servers for NAT traversal
+    fn connect_to_public_relays(&mut self) -> Result<()> {
+        info!("🔄 Connecting to public relay servers for NAT traversal...");
+        
+        // List of public libp2p relay servers
+        let relays = vec![
+            // IPFS public relays
+            "/dnsaddr/relay.libp2p.io/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN",
+            "/dnsaddr/relay.libp2p.io/p2p/12D3KooWPjceQrSwdWXPyLLeABRXmuqt69Rg3sBYbU1Nft9HyQ6X",
+        ];
+
+        for relay_addr in relays {
+            if let Ok(addr) = relay_addr.parse::<libp2p::Multiaddr>() {
+                info!("🔗 Connecting to relay: {}", relay_addr);
+                if let Err(e) = self.swarm.dial(addr) {
+                    warn!("Failed to connect to relay {}: {}", relay_addr, e);
+                }
+            }
+        }
+
+        Ok(())
     }
 
     /// Get the local peer ID
@@ -284,7 +323,11 @@ impl NetworkNode {
                     warn!("❌ Identify error with {}: {:?}", peer_id, error);
                 }
                 SwarmEvent::Behaviour(MrbnBehaviourEvent::RelayClient(relay::client::Event::ReservationReqAccepted { relay_peer_id, .. })) => {
-                    info!("🔄 Relay reservation accepted by {}", relay_peer_id);
+                    info!("✅ Relay reservation accepted by {}", relay_peer_id);
+                    info!("🔄 You can now be reached through this relay for NAT traversal");
+                }
+                SwarmEvent::Behaviour(MrbnBehaviourEvent::RelayClient(event)) => {
+                    info!("🔄 Relay event: {:?}", event);
                 }
                 SwarmEvent::Behaviour(MrbnBehaviourEvent::Dcutr(event)) => {
                     info!("⚡ DCUtR event: {:?}", event);

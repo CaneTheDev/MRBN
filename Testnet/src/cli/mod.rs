@@ -36,6 +36,11 @@ pub struct Cli {
     /// Bootstrap node address (format: /ip4/1.2.3.4/tcp/8333/p2p/12D3Koo...)
     #[arg(long)]
     pub bootstrap: Option<String>,
+    
+    /// External address to advertise (for nodes behind proxies/load balancers)
+    /// Format: /dns4/your-domain.com/tcp/port or /ip4/1.2.3.4/tcp/port
+    #[arg(long)]
+    pub external_address: Option<String>,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -100,6 +105,8 @@ pub struct CliConfig {
     pub wallet_dir: PathBuf,
     /// Bootstrap node multiaddr
     pub bootstrap: Option<String>,
+    /// External address to advertise
+    pub external_address: Option<String>,
 }
 
 impl From<Cli> for CliConfig {
@@ -110,6 +117,7 @@ impl From<Cli> for CliConfig {
             validator: cli.validator,
             wallet_dir: cli.wallet_dir,
             bootstrap: cli.bootstrap,
+            external_address: cli.external_address,
         }
     }
 }
@@ -122,6 +130,7 @@ impl Default for CliConfig {
             validator: true,
             wallet_dir: PathBuf::from("./wallet"),
             bootstrap: None,
+            external_address: None,
         }
     }
 }

@@ -39,7 +39,7 @@ impl MrbnNode {
         info!("✅ Storage initialized at {:?}", config.data_dir);
 
         // Initialize network
-        let mut network = NetworkNode::new()?;
+        let mut network = NetworkNode::new(config.external_address.clone())?;
         info!("✅ Network initialized (Peer ID: {})", network.peer_id());
         
         // Add bootstrap peer if provided

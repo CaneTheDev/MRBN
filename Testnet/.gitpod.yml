@@ -1,29 +1,28 @@
-# Gitpod configuration for MRBN testing
-
 tasks:
   - name: MRBN Node
     init: |
-      cd Testnet
-      cargo build --release
+      cd /workspace/MRBN/Testnet
+      cargo build --release --bin mrbn-node
     command: |
-      cd Testnet
-      echo "╔════════════════════════════════════════╗"
-      echo "║   MRBN Gitpod Test Node                ║"
-      echo "╚════════════════════════════════════════╝"
+      cd /workspace/MRBN/Testnet
+      echo "========================================="
+      echo "MRBN Node on Gitpod"
+      echo "========================================="
       echo ""
-      echo "📋 Instructions:"
-      echo "   1. Get bootstrap address from your laptop"
-      echo "   2. Run: cargo run -- --bootstrap \"/ip4/YOUR_IP/tcp/8333/p2p/PEER_ID\""
+      echo "To connect to your local bootstrap:"
+      echo "1. Get your local node's Peer ID"
+      echo "2. Get your public IP"
+      echo "3. Run: cargo run --release --bin mrbn-node -- --bootstrap /ip4/YOUR_PUBLIC_IP/tcp/8333/p2p/PEER_ID --data-dir ./data_gitpod"
       echo ""
-      echo "Example:"
-      echo "   cargo run -- --data-dir ./data_gitpod --port 8334 --bootstrap \"/ip4/1.2.3.4/tcp/8333/p2p/12D3KooW...\""
-      echo ""
+      gp sync-done build
 
 ports:
   - port: 8333
     onOpen: ignore
+    visibility: public
   - port: 8334
     onOpen: ignore
+    visibility: public
 
 vscode:
   extensions:

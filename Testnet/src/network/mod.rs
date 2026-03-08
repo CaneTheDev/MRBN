@@ -5,7 +5,7 @@ use futures::StreamExt;
 use libp2p::{
     gossipsub, kad, mdns, noise, yamux, ping, relay, dcutr, identify,
     swarm::{NetworkBehaviour, SwarmEvent},
-    tcp, dns, PeerId, Swarm, SwarmBuilder, Transport,
+    tcp, dns, websocket, PeerId, Swarm, SwarmBuilder, Transport,
     core::upgrade,
 };
 use std::time::Duration;
@@ -64,8 +64,7 @@ impl NetworkNode {
         let store = kad::store::MemoryStore::new(local_peer_id);
         let mut kademlia = kad::Behaviour::with_config(local_peer_id, store, kademlia_config);
 
-        // Bootstrap with known MRBN nodes (for now, we'll use local bootstrap)
-        // In production, these would be public bootstrap nodes
+        // Bootstrap nodes will be added via --bootstrap CLI flag or discovered via mDNS
         kademlia.set_mode(Some(kad::Mode::Server));
 
         info!("🌍 Kademlia DHT initialized for global discovery");
@@ -104,8 +103,12 @@ impl NetworkNode {
 
         info!("📡 Subscribed to topics: transactions, blocks, committee");
 
-        // Build simple TCP transport with DNS
-        let transport = dns::tokio::Transport::system(tcp::tokio::Transport::default())?
+        // Build transport with TCP, WebSocket, and DNS
+        let tcp_transport = tcp::tokio::Transport::default();
+        let ws_transport = websocket::WsConfig::new(tcp::tokio::Transport::default());
+        let combined_transport = tcp_transport.or_transport(ws_transport);
+        
+        let transport = dns::tokio::Transport::system(combined_transport)?
             .upgrade(upgrade::Version::V1)
             .authenticate(noise::Config::new(&local_key)?)
             .multiplex(yamux::Config::default())
@@ -133,10 +136,11 @@ impl NetworkNode {
             })
             .build();
 
-        // Listen on TCP for P2P connections
+        // Listen on both IPv4 and IPv6 for P2P connections
         swarm.listen_on("/ip4/0.0.0.0/tcp/8333".parse()?)?;
+        swarm.listen_on("/ip6/::/tcp/8333".parse()?)?;
         
-        info!("🎧 Listening on TCP port 8333 for P2P connections...");
+        info!("🎧 Listening on TCP port 8333 (IPv4 + IPv6) for P2P connections...");
 
         // Create the node
         let node = NetworkNode {

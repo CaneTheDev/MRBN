@@ -3,18 +3,19 @@ echo ========================================
 echo MRBN Internet P2P Test
 echo ========================================
 echo.
-echo This will connect your local node to the Railway bootstrap node
+echo Connecting to Railway via WebSocket relay bridge
+echo After bootstrap, all connections will be direct P2P!
 echo.
 
-REM Railway TCP proxy details (from Railway dashboard)
-set RAILWAY_PROXY=switchback.proxy.rlwy.net
-set RAILWAY_PORT=35284
+REM Railway exposes the relay bridge on their HTTP domain
+set RAILWAY_DOMAIN=mrbn-production.up.railway.app
+set RAILWAY_PORT=443
 
 REM Railway peer ID from logs
-set RAILWAY_PEER_ID=12D3KooWPYAG7VLyAdfXRy79pDd9WYLnhmtEm5BPKE84wm9gnJMm
+set RAILWAY_PEER_ID=12D3KooWBNncp1R6K1m9wJiJ1L9e13arJ7R2CZYkccEVKVRZDARM
 
-REM Build the bootstrap address
-set BOOTSTRAP_ADDR=/dns4/%RAILWAY_PROXY%/tcp/%RAILWAY_PORT%/p2p/%RAILWAY_PEER_ID%
+REM Build the bootstrap address using WebSocket (ws not wss - Railway handles TLS)
+set BOOTSTRAP_ADDR=/dns4/%RAILWAY_DOMAIN%/tcp/%RAILWAY_PORT%/ws/p2p/%RAILWAY_PEER_ID%
 
 echo Bootstrap address: %BOOTSTRAP_ADDR%
 echo.

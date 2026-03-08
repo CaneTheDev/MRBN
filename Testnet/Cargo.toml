@@ -27,6 +27,7 @@ path = "src/bin/network_test.rs"
 libp2p = { version = "0.53", features = [
     "tcp",           # TCP transport
     "dns",           # DNS resolution
+    "websocket",     # WebSocket for Railway relay bridge
     "noise",         # Encryption
     "yamux",         # Multiplexing
     "gossipsub",     # Message broadcasting

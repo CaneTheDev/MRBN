@@ -1,0 +1,6 @@
+version=9
+salt=481a037cbf7844cd0a096a9f868444fa9d4c01906e33d17485ec3f44679cdcf1
+col0=preimage: false, uniform: false, refc: false, compression: 0, ordered: false, multitree: false, append_only: false, allow_direct_node_access: false
+col1=preimage: false, uniform: false, refc: false, compression: 0, ordered: true, multitree: false, append_only: false, allow_direct_node_access: false
+col2=preimage: false, uniform: false, refc: false, compression: 0, ordered: true, multitree: false, append_only: false, allow_direct_node_access: false
+col3=preimage: false, uniform: false, refc: false, compression: 0, ordered: false, multitree: false, append_only: false, allow_direct_node_access: false
